@@ -86,7 +86,7 @@ if (send_btn or prompt) and prompt:
         
         try:
             # During local testing use this:
-            response = requests.post("http://127.0.0.1:8000/chat", params={"user_input": prompt})
+            response = requests.post("https://nexus-ai-1-3rxu.onrender.com/chat", params={"user_input": prompt})
             if response.status_code == 200:
                 ans = response.json().get("response")
                 st.session_state.messages.append({"role": "assistant", "content": ans})
