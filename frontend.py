@@ -2,10 +2,11 @@ import streamlit as st
 import requests
 
 # 1. INITIALIZATION & LAYOUT
-# Updated page title to Nexus
 st.set_page_config(page_title="Nexus AI", layout="wide")
 
-# This keeps track of every chat "matter"
+# Define the Live Render URL
+URL = "https://nexus-ai-1-3rxu.onrender.com/chat"
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "assistant", "content": "Hi there, how can I assist you today?"}
@@ -14,25 +15,21 @@ if "messages" not in st.session_state:
 # 2. CUSTOM STYLING 
 st.markdown("""
     <style>
-    /* Make the chat history area scrollable */
-    .stMain {
-        background-color: #131314;
-        color: #e3e3e3;
+    .stChatMessage {
+        color: white !important;
+        background-color: #262730 !important;
     }
-    /* Style the Plus Button */
     div[data-testid="stPopover"] > button {
         border-radius: 50% !important;
         background-color: transparent !important;
         border: none !important;
         font-size: 24px !important;
     }
-    /* Fixed Bottom Bar Styling */
     footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
 # 3. TOP HISTORY SECTION
-# Updated Title to Nexus
 st.title("Nexus AI")
 
 chat_history_area = st.container()
@@ -69,7 +66,6 @@ with st.container():
             st.link_button("🌀 NotebookLM", "https://notebooklm.google.com", use_container_width=True)
             
     with c2:
-        # Updated placeholder to "Ask Nexus"
         prompt = st.text_input("Ask Nexus", key="user_prompt", label_visibility="collapsed", placeholder="Ask Nexus...")
 
     with c3:
@@ -78,21 +74,26 @@ with st.container():
     with c4:
         send_btn = st.button("➤")
 
-# 5. LOGIC: STOPPING THE LOOP & ADDING TO HISTORY
+# 5. LOGIC: HANDLING THE MESSAGE
 if (send_btn or prompt) and prompt:
+    # Prevent duplicate messages
     if "last_sent" not in st.session_state or st.session_state.last_sent != prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.last_sent = prompt 
         
         try:
-            # During local testing use this:
-            response = requests.post("https://nexus-ai-1-3rxu.onrender.com/chat", params={"user_input": prompt})
+            # Added a spinner to tell the user the AI is "waking up"
+            with st.spinner("Nexus is waking up... this may take a minute..."):
+                # Added timeout=60 to wait for Render's free tier to start
+                response = requests.post(URL, params={"user_input": prompt}, timeout=60)
+                
             if response.status_code == 200:
                 ans = response.json().get("response")
                 st.session_state.messages.append({"role": "assistant", "content": ans})
             else:
-                st.error("Nexus is currently busy. Please try again in a moment.")
-        except:
-            st.error("Backend connection failed. Ensure Nexus Backend is running.")
+                st.error(f"Nexus is busy (Error {response.status_code}). Please try again.")
+        except Exception as e:
+            st.error("Backend connection failed. Render might still be waking up.")
+            print(f"Error: {e}")
 
         st.rerun()
