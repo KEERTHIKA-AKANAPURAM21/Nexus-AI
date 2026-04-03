@@ -15,22 +15,22 @@ if "messages" not in st.session_state:
 # 2. CUSTOM STYLING - Fixed Visibility
 # 2. CUSTOM STYLING - Hidden Toolbar & Fixed Visibility
 # 2. CUSTOM STYLING - Clean Interface
+# 2. CUSTOM STYLING - Targeted Hide
 st.markdown("""
     <style>
-    /* 1. HIDE TOP HEADER (GitHub, Pencil, etc.) */
+    /* 1. HIDE ONLY THE MANAGE APP BUTTON */
+    /* This looks for the specific button link for management */
+    [data-testid="stStatusWidget"] {
+        display: none !important;
+    }
+    
+    /* 2. ENSURE THE REST OF THE HEADER (Share, 3-dots) IS VISIBLE */
     header[data-testid="stHeader"] {
-        visibility: hidden;
-        height: 0% !important;
+        visibility: visible !important;
+        background-color: rgba(255, 255, 255, 0); /* Transparent */
     }
-    
-    /* 2. HIDE "MANAGE APP" BUTTON AND FOOTER */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    div[data-testid="stStatusWidget"] {
-        visibility: hidden;
-    }
-    
-    /* 3. Chat visibility fixes (Dark text on light background) */
+
+    /* 3. Chat visibility fixes */
     .stChatMessage {
         background-color: #f0f2f6 !important;
         border-radius: 10px;
@@ -41,18 +41,15 @@ st.markdown("""
         color: #1E1E1E !important; 
     }
 
-    /* 4. Style the Plus Button */
+    /* 4. Hide Footer */
+    footer {visibility: hidden;}
+
+    /* 5. Style the Plus Button */
     div[data-testid="stPopover"] > button {
         border-radius: 50% !important;
         background-color: transparent !important;
         border: none !important;
         font-size: 24px !important;
-    }
-
-    /* 5. Adjust page padding */
-    .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 5rem !important;
     }
     </style>
 """, unsafe_allow_html=True)
