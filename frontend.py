@@ -13,28 +13,41 @@ if "messages" not in st.session_state:
     ]
 
 # 2. CUSTOM STYLING - Fixed Visibility
+# 2. CUSTOM STYLING - Hidden Toolbar & Fixed Visibility
 st.markdown("""
     <style>
-    /* Ensure chat text is always visible (black text on light gray bubbles) */
+    /* 1. HIDE THE TOP TOOLBAR (Pencil, GitHub, etc.) */
+    header[data-testid="stHeader"] {
+        visibility: hidden;
+        height: 0% !important;
+    }
+    
+    /* 2. Chat visibility fixes */
     .stChatMessage {
         background-color: #f0f2f6 !important;
         border-radius: 10px;
         padding: 10px;
         margin-bottom: 10px;
     }
-    /* Style for the user and assistant text specifically */
     .stChatMessage p {
         color: #1E1E1E !important; 
-        font-weight: 400;
     }
-    /* Style the Plus Button */
+
+    /* 3. Style the Plus Button */
     div[data-testid="stPopover"] > button {
         border-radius: 50% !important;
         background-color: transparent !important;
         border: none !important;
         font-size: 24px !important;
     }
+
+    /* 4. Hide Footer */
     footer {visibility: hidden;}
+    
+    /* 5. Reduce top padding since header is gone */
+    .block-container {
+        padding-top: 2rem !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
