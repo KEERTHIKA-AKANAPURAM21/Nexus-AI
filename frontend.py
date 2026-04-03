@@ -12,13 +12,22 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": "Hi there, how can I assist you today?"}
     ]
 
-# 2. CUSTOM STYLING 
+# 2. CUSTOM STYLING - Fixed Visibility
 st.markdown("""
     <style>
+    /* Ensure chat text is always visible (black text on light gray bubbles) */
     .stChatMessage {
-        color: white !important;
-        background-color: #262730 !important;
+        background-color: #f0f2f6 !important;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
+    /* Style for the user and assistant text specifically */
+    .stChatMessage p {
+        color: #1E1E1E !important; 
+        font-weight: 400;
+    }
+    /* Style the Plus Button */
     div[data-testid="stPopover"] > button {
         border-radius: 50% !important;
         background-color: transparent !important;
@@ -51,19 +60,7 @@ with st.container():
             up_file = st.file_uploader("Upload", label_visibility="collapsed", key="active_up", type=["pdf", "png", "jpg"])
             if up_file:
                 st.success(f"Attached: {up_file.name}")
-
             st.link_button("🔺 Add from Drive", "https://drive.google.com", use_container_width=True)
-
-            if st.button("📷 Take photo", use_container_width=True, key="btn_photo"):
-                st.session_state.active_action = "camera"
-                
-            if st.session_state.get("active_action") == "camera":
-                cam_img = st.camera_input("Smile!", label_visibility="collapsed")
-                if cam_img:
-                    st.success("Photo captured!")
-                    st.session_state.active_action = None 
-
-            st.link_button("🌀 NotebookLM", "https://notebooklm.google.com", use_container_width=True)
             
     with c2:
         prompt = st.text_input("Ask Nexus", key="user_prompt", label_visibility="collapsed", placeholder="Ask Nexus...")
@@ -76,24 +73,24 @@ with st.container():
 
 # 5. LOGIC: HANDLING THE MESSAGE
 if (send_btn or prompt) and prompt:
-    # Prevent duplicate messages
+    # Add user message to state immediately
     if "last_sent" not in st.session_state or st.session_state.last_sent != prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.last_sent = prompt 
         
         try:
-            # Added a spinner to tell the user the AI is "waking up"
-            with st.spinner("Nexus is waking up... this may take a minute..."):
-                # Added timeout=60 to wait for Render's free tier to start
-                response = requests.post(URL, params={"user_input": prompt}, timeout=60)
+            with st.spinner("Nexus is thinking..."):
+                # Timeout set to 20 seconds as requested
+                response = requests.post(URL, params={"user_input": prompt}, timeout=20)
                 
             if response.status_code == 200:
                 ans = response.json().get("response")
                 st.session_state.messages.append({"role": "assistant", "content": ans})
             else:
-                st.error(f"Nexus is busy (Error {response.status_code}). Please try again.")
+                st.error(f"Backend Error ({response.status_code}). Try again.")
+        except requests.exceptions.Timeout:
+            st.warning("Nexus is taking a bit to wake up. Please click '➤' again.")
         except Exception as e:
-            st.error("Backend connection failed. Render might still be waking up.")
-            print(f"Error: {e}")
+            st.error("Could not connect to Nexus. Check if Render is Live.")
 
         st.rerun()
