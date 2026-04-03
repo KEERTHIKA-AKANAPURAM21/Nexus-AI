@@ -58,8 +58,7 @@ st.markdown("""
 # 3. TOP SECTION WITH NEW CHAT FUNCTION
 col_title, col_new_chat = st.columns([9, 1])
 
-with col_title:
-    st.title("Nexus AI")
+
 
 with col_new_chat:
     # Adding a "New Chat" button that clears the session
