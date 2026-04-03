@@ -14,15 +14,23 @@ if "messages" not in st.session_state:
 
 # 2. CUSTOM STYLING - Fixed Visibility
 # 2. CUSTOM STYLING - Hidden Toolbar & Fixed Visibility
+# 2. CUSTOM STYLING - Clean Interface
 st.markdown("""
     <style>
-    /* 1. HIDE THE TOP TOOLBAR (Pencil, GitHub, etc.) */
+    /* 1. HIDE TOP HEADER (GitHub, Pencil, etc.) */
     header[data-testid="stHeader"] {
         visibility: hidden;
         height: 0% !important;
     }
     
-    /* 2. Chat visibility fixes */
+    /* 2. HIDE "MANAGE APP" BUTTON AND FOOTER */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    div[data-testid="stStatusWidget"] {
+        visibility: hidden;
+    }
+    
+    /* 3. Chat visibility fixes (Dark text on light background) */
     .stChatMessage {
         background-color: #f0f2f6 !important;
         border-radius: 10px;
@@ -33,7 +41,7 @@ st.markdown("""
         color: #1E1E1E !important; 
     }
 
-    /* 3. Style the Plus Button */
+    /* 4. Style the Plus Button */
     div[data-testid="stPopover"] > button {
         border-radius: 50% !important;
         background-color: transparent !important;
@@ -41,12 +49,10 @@ st.markdown("""
         font-size: 24px !important;
     }
 
-    /* 4. Hide Footer */
-    footer {visibility: hidden;}
-    
-    /* 5. Reduce top padding since header is gone */
+    /* 5. Adjust page padding */
     .block-container {
-        padding-top: 2rem !important;
+        padding-top: 1rem !important;
+        padding-bottom: 5rem !important;
     }
     </style>
 """, unsafe_allow_html=True)
