@@ -18,20 +18,28 @@ if "messages" not in st.session_state:
 # 2. CUSTOM STYLING - Targeted Hide
 # 2. CUSTOM STYLING - Targeted Cleanup
 # 2. CUSTOM STYLING - Targeted Cleanup & Profile Look
+# 2. CUSTOM STYLING - Targeted Cleanup
 st.markdown("""
     <style>
-    /* 1. HIDE GITHUB, PENCIL, AND MANAGE APP */
-    div[data-testid="stToolbar"], 
-    div[data-testid="stStatusWidget"] {
+    /* 1. HIDE GITHUB ICON & PENCIL (Edit button) */
+    /* This targets the specific group containing those dev tools */
+    div[data-testid="stToolbar"] {
         display: none !important;
     }
 
-    /* 2. ENSURE SHARE & THREE DOTS REMAIN VISIBLE */
+    /* 2. HIDE MANAGE APP BUTTON */
+    /* This targets the specific widget container for app owners */
+    div[data-testid="stStatusWidget"] {
+        display: none !important;
+    }
+    
+    /* 3. ENSURE SHARE & THREE DOTS REMAIN VISIBLE */
     header[data-testid="stHeader"] {
         visibility: visible !important;
+        background-color: rgba(255, 255, 255, 0); 
     }
 
-    /* 3. CHAT BUBBLE VISIBILITY */
+    /* 4. Chat visibility fixes (Black text on light gray) */
     .stChatMessage {
         background-color: #f0f2f6 !important;
         border-radius: 10px;
@@ -42,29 +50,16 @@ st.markdown("""
         color: #1E1E1E !important; 
     }
 
-    /* 4. HIDE FOOTER */
-    footer {visibility: hidden;}
-
-    /* 5. STYLE THE PLUS BUTTON */
+    /* 5. Style the Plus Button and Hide Footer */
     div[data-testid="stPopover"] > button {
         border-radius: 50% !important;
         background-color: transparent !important;
         border: none !important;
         font-size: 24px !important;
     }
+    footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
-
-# 3. TOP SECTION WITH NEW CHAT FUNCTION
-col_title, col_new_chat = st.columns([9, 1])
-
-
-
-with col_new_chat:
-    # Adding a "New Chat" button that clears the session
-    if st.button("➕", help="Start a New Chat"):
-        st.session_state.messages = [{"role": "assistant", "content": "Hi there, how can I assist you today?"}]
-        st.rerun()
 
 # 3. TOP HISTORY SECTION
 st.title("Nexus AI")
