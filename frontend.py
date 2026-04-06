@@ -11,7 +11,7 @@ except Exception as e:
     st.error("GROQ_API_KEY missing in Streamlit Secrets!")
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hi! Nexus (Groq Edition) is ready. How can I help?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Hi!. How can I help you?"}]
 
 # 2. STYLING (Kept your professional look)
 st.markdown("""
