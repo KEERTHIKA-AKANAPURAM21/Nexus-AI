@@ -6,7 +6,7 @@ st.set_page_config(page_title="Nexus AI", layout="wide")
 
 # Configure Gemini directly using Streamlit Secrets
 try:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    genai.configure(api_key=st.secrets["AIzaSyDJFgAQlB7106ZNzvkf1sc1ZPMhHRdFWkA"])
     model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
     st.error("API Key missing or invalid in Streamlit Secrets. Please check your dashboard.")
