@@ -6,7 +6,7 @@ st.set_page_config(page_title="Nexus AI", layout="wide")
 
 # Link to the Secret you just saved
 try:
-    client = Groq(api_key=st.secrets["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"])
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 except Exception as e:
     st.error("GROQ_API_KEY missing in Streamlit Secrets!")
 
