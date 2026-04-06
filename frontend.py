@@ -1,45 +1,40 @@
 import streamlit as st
-import requests
+import google.generativeai as genai
 
 # 1. INITIALIZATION & LAYOUT
 st.set_page_config(page_title="Nexus AI", layout="wide")
 
-# Define the Live Render URL
-URL = "https://nexus-ai-1-3rxu.onrender.com/chat"
+# Configure Gemini directly using Streamlit Secrets
+try:
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error("API Key missing or invalid in Streamlit Secrets. Please check your dashboard.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "assistant", "content": "Hi there, how can I assist you today?"}
     ]
 
-# 2. CUSTOM STYLING - Fixed Visibility
-# 2. CUSTOM STYLING - Hidden Toolbar & Fixed Visibility
 # 2. CUSTOM STYLING - Clean Interface
-# 2. CUSTOM STYLING - Targeted Hide
-# 2. CUSTOM STYLING - Targeted Cleanup
-# 2. CUSTOM STYLING - Targeted Cleanup & Profile Look
-# 2. CUSTOM STYLING - Targeted Cleanup
 st.markdown("""
     <style>
-    /* 1. HIDE GITHUB ICON & PENCIL (Edit button) */
-    /* This targets the specific group containing those dev tools */
+    /* HIDE GITHUB ICON & TOOLBAR */
     div[data-testid="stToolbar"] {
         display: none !important;
     }
 
-    /* 2. HIDE MANAGE APP BUTTON */
-    /* This targets the specific widget container for app owners */
+    /* HIDE MANAGE APP BUTTON */
     div[data-testid="stStatusWidget"] {
         display: none !important;
     }
     
-    /* 3. ENSURE SHARE & THREE DOTS REMAIN VISIBLE */
     header[data-testid="stHeader"] {
         visibility: visible !important;
         background-color: rgba(255, 255, 255, 0); 
     }
 
-    /* 4. Chat visibility fixes (Black text on light gray) */
+    /* Chat visibility fixes */
     .stChatMessage {
         background-color: #f0f2f6 !important;
         border-radius: 10px;
@@ -50,7 +45,7 @@ st.markdown("""
         color: #1E1E1E !important; 
     }
 
-    /* 5. Style the Plus Button and Hide Footer */
+    /* Style the Plus Button and Hide Footer */
     div[data-testid="stPopover"] > button {
         border-radius: 50% !important;
         background-color: transparent !important;
@@ -94,26 +89,23 @@ with st.container():
     with c4:
         send_btn = st.button("➤")
 
-# 5. LOGIC: HANDLING THE MESSAGE
+# 5. LOGIC: HANDLING THE MESSAGE DIRECTLY WITH GEMINI
 if (send_btn or prompt) and prompt:
-    # Add user message to state immediately
+    # Check for duplicate sends
     if "last_sent" not in st.session_state or st.session_state.last_sent != prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.last_sent = prompt 
         
         try:
             with st.spinner("Nexus is thinking..."):
-                # Timeout set to 20 seconds as requested
-                response = requests.post(URL, params={"user_input": prompt}, timeout=20)
+                # Call Gemini API directly
+                response = model.generate_content(prompt)
+                ans = response.text
                 
-            if response.status_code == 200:
-                ans = response.json().get("response")
+                # Append the AI response to session state
                 st.session_state.messages.append({"role": "assistant", "content": ans})
-            else:
-                st.error(f"Backend Error ({response.status_code}). Try again.")
-        except requests.exceptions.Timeout:
-            st.warning("Nexus is taking a bit to wake up. Please click '➤' again.")
+                
         except Exception as e:
-            st.error("Could not connect to Nexus. Check if Render is Live.")
+            st.error(f"Nexus encountered an error: {e}")
 
         st.rerun()
