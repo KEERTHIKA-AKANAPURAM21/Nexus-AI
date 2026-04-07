@@ -27,9 +27,11 @@ try:
 except Exception as e:
     st.error("GROQ_API_KEY missing in Streamlit Secrets!")
 
-# Session State for Chat History
+# Initialize Session State
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Hi! Nexus is ready. How can I help you today?"}]
+if "uploader_key" not in st.session_state:
+    st.session_state.uploader_key = 0
 
 # 2. STYLING
 st.markdown("""
@@ -37,19 +39,8 @@ st.markdown("""
     div[data-testid="stToolbar"], div[data-testid="stStatusWidget"] {display: none !important;}
     footer {visibility: hidden;}
     .stChatMessage {background-color: #f0f2f6 !important; border-radius: 10px; padding: 10px; margin-bottom: 10px;}
-    
-    /* Plus Button Style */
-    button[data-testid="baseButton-secondary"] {
-        border-radius: 50% !important;
-        width: 38px !important;
-        height: 38px !important;
-        padding: 0px !important;
-    }
-    
-    /* Make the New Chat button look like a sleek pill */
-    .stButton > button {
-        border-radius: 20px !important;
-    }
+    button[data-testid="baseButton-secondary"] { border-radius: 50% !important; width: 38px !important; height: 38px !important; padding: 0px !important; }
+    .stButton > button { border-radius: 20px !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -61,27 +52,31 @@ for msg in st.session_state.messages:
         st.write(msg["content"])
 
 # 4. BOTTOM INPUT AREA
-# Layout: [+] | [New Chat] | [Text Input]
 col1, col2, col3 = st.columns([0.06, 0.14, 0.80], vertical_alignment="bottom")
 
 with col1:
     with st.popover("➕"):
         st.markdown("### Attach")
-        uploaded_file = st.file_uploader("Upload", type=['pdf', 'txt'], label_visibility="collapsed")
+        # We use a dynamic key here to force it to reset
+        uploaded_file = st.file_uploader(
+            "Upload", 
+            type=['pdf', 'txt'], 
+            label_visibility="collapsed", 
+            key=f"file_uploader_{st.session_state.uploader_key}"
+        )
         st.button("📁 Drive (Cloud Only)")
 
 with col2:
-    # This button resets EVERYTHING so a "New Chat" is truly ready
     if st.button("🔄 New Chat"):
-        for key in st.session_state.keys():
-            del st.session_state[key]
+        # Clear messages
+        st.session_state.messages = [{"role": "assistant", "content": "Chat cleared! How can I help?"}]
+        # Change the uploader key to force the widget to empty itself
+        st.session_state.uploader_key += 1
         st.rerun()
 
 with col3:
-    # If a file is uploaded, show it right above the text box
     if uploaded_file:
         st.info(f"📄 Attached: {uploaded_file.name}")
-    
     prompt = st.chat_input("Ask Nexus...")
 
 # 5. PROCESSING LOGIC
@@ -98,7 +93,6 @@ if prompt:
                 file_context = f"\n[DOCUMENT CONTENT: {content}]\n"
             
             final_content = f"{file_context} User Question: {prompt}"
-
             completion = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[{"role": "user", "content": final_content}]
