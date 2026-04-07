@@ -5,7 +5,6 @@ import pypdf
 # 1. INITIALIZATION & CONFIG
 st.set_page_config(page_title="Nexus AI", layout="wide")
 
-# Function to extract text from different file types
 def extract_text_from_file(file):
     try:
         if file.type == "text/plain":
@@ -18,8 +17,7 @@ def extract_text_from_file(file):
                 if content:
                     text += content
             return text
-        else:
-            return "Unsupported file type."
+        return "Unsupported file type."
     except Exception as e:
         return f"Error reading file: {str(e)}"
 
@@ -43,15 +41,14 @@ st.markdown("""
     /* Plus Button Style */
     button[data-testid="baseButton-secondary"] {
         border-radius: 50% !important;
-        width: 35px !important;
-        height: 35px !important;
+        width: 38px !important;
+        height: 38px !important;
         padding: 0px !important;
     }
-
-    /* Column Alignment */
-    div[data-testid="column"] {
-        display: flex;
-        align-items: flex-end;
+    
+    /* Make the New Chat button look like a sleek pill */
+    .stButton > button {
+        border-radius: 20px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -64,35 +61,27 @@ for msg in st.session_state.messages:
         st.write(msg["content"])
 
 # 4. BOTTOM INPUT AREA
-col1, col2, col3 = st.columns([0.05, 0.12, 0.83], vertical_alignment="bottom")
+# Layout: [+] | [New Chat] | [Text Input]
+col1, col2, col3 = st.columns([0.06, 0.14, 0.80], vertical_alignment="bottom")
 
 with col1:
     with st.popover("➕"):
-        st.markdown("### Attach Content")
-        
-        # Option 1: Local Upload
-        uploaded_file = st.file_uploader("Upload local files", type=['pdf', 'txt'], label_visibility="visible")
-        
-        st.divider()
-        
-        # Option 2: Google Drive Placeholder
-        if st.button("📁 Add from Google Drive"):
-            st.info("Google Drive Integration: Cloud Project & OAuth setup required for live access.")
-            
-        # Option 3: Clear Chat
-        if st.button("🗑️ Reset Conversation"):
-            st.session_state.messages = [{"role": "assistant", "content": "Chat cleared!"}]
-            st.rerun()
+        st.markdown("### Attach")
+        uploaded_file = st.file_uploader("Upload", type=['pdf', 'txt'], label_visibility="collapsed")
+        st.button("📁 Drive (Cloud Only)")
 
 with col2:
+    # This button resets EVERYTHING so a "New Chat" is truly ready
     if st.button("🔄 New Chat"):
-        st.session_state.messages = [{"role": "assistant", "content": "New session started."}]
+        for key in st.session_state.keys():
+            del st.session_state[key]
         st.rerun()
 
 with col3:
-    # Badge to show what is currently "in memory"
+    # If a file is uploaded, show it right above the text box
     if uploaded_file:
-        st.markdown(f"📎 **Attached:** `{uploaded_file.name}`")
+        st.info(f"📄 Attached: {uploaded_file.name}")
+    
     prompt = st.chat_input("Ask Nexus...")
 
 # 5. PROCESSING LOGIC
@@ -106,7 +95,7 @@ if prompt:
             file_context = ""
             if uploaded_file:
                 content = extract_text_from_file(uploaded_file)
-                file_context = f"\n[REFERENCE DOCUMENT: {content}]\n"
+                file_context = f"\n[DOCUMENT CONTENT: {content}]\n"
             
             final_content = f"{file_context} User Question: {prompt}"
 
