@@ -57,24 +57,25 @@ col1, col2, col3 = st.columns([0.06, 0.14, 0.80], vertical_alignment="bottom")
 with col1:
     with st.popover("➕"):
         st.markdown("### Attach")
-        # We use a dynamic key here to force it to reset
+        # The key changes every time "New Chat" is pressed, forcing a reset
         uploaded_file = st.file_uploader(
             "Upload", 
             type=['pdf', 'txt'], 
             label_visibility="collapsed", 
-            key=f"file_uploader_{st.session_state.uploader_key}"
+            key=f"uploader_{st.session_state.uploader_key}"
         )
         st.button("📁 Drive (Cloud Only)")
 
 with col2:
     if st.button("🔄 New Chat"):
-        # Clear messages
-        st.session_state.messages = [{"role": "assistant", "content": "Chat cleared! How can I help?"}]
-        # Change the uploader key to force the widget to empty itself
+        # Wiping messages
+        st.session_state.messages = [{"role": "assistant", "content": "Hi! Nexus is ready. How can I help you today?"}]
+        # Incrementing the key forces the file_uploader to delete its current file
         st.session_state.uploader_key += 1
         st.rerun()
 
 with col3:
+    # This badge will now disappear correctly on "New Chat"
     if uploaded_file:
         st.info(f"📄 Attached: {uploaded_file.name}")
     prompt = st.chat_input("Ask Nexus...")
