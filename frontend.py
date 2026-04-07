@@ -33,7 +33,7 @@ except Exception as e:
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Hi! Nexus is ready. How can I help you today?"}]
 
-# 2. STYLING (Hides UI clutter and styles the "Plus" button)
+# 2. STYLING (Professional look)
 st.markdown("""
     <style>
     div[data-testid="stToolbar"], div[data-testid="stStatusWidget"] {display: none !important;}
@@ -48,6 +48,17 @@ st.markdown("""
         padding: 0px !important;
         margin-bottom: 5px;
     }
+    
+    /* File Attachment Badge Style */
+    .file-badge {
+        background-color: #e0e0e0;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        color: #333;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -58,7 +69,7 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
-# 4. BOTTOM INPUT AREA (ChatGPT Look)
+# 4. BOTTOM INPUT AREA (The ChatGPT Look)
 col1, col2 = st.columns([0.07, 0.93], vertical_alignment="bottom")
 
 with col1:
@@ -67,17 +78,15 @@ with col1:
         st.markdown("### Attachments")
         uploaded_file = st.file_uploader("Upload files", type=['pdf', 'txt'], label_visibility="collapsed")
         
-        if uploaded_file:
-            st.success(f"File attached: {uploaded_file.name}")
-            
-        if st.button("🔗 Add from Google Drive"):
-            st.info("Google Drive integration requires OAuth setup. Please upload local files for now.")
-            
         if st.button("🗑️ Clear Chat"):
             st.session_state.messages = [{"role": "assistant", "content": "Chat cleared!"}]
             st.rerun()
 
 with col2:
+    # SHOW ATTACHED FILE BADGE (This ensures you see the file before sending)
+    if uploaded_file:
+        st.markdown(f"📎 **Attached:** `{uploaded_file.name}`")
+        
     prompt = st.chat_input("Ask Nexus...")
 
 # 5. PROCESSING LOGIC
@@ -94,9 +103,9 @@ if prompt:
             # If a file is uploaded, extract its content and add it to the prompt context
             if uploaded_file:
                 content = extract_text_from_file(uploaded_file)
-                file_context = f"\n[Document Content for reference: {content}]\n"
+                file_context = f"\n[DOCUMENT CONTENT FOR REFERENCE: {content}]\n"
             
-            # Build the full prompt for the AI
+            # Build the final content string
             final_content = f"{file_context} User Question: {prompt}"
 
             completion = client.chat.completions.create(
