@@ -33,7 +33,7 @@ except Exception as e:
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Hi! Nexus is ready. How can I help you today?"}]
 
-# 2. STYLING (Professional look)
+# 2. STYLING
 st.markdown("""
     <style>
     div[data-testid="stToolbar"], div[data-testid="stStatusWidget"] {display: none !important;}
@@ -43,21 +43,14 @@ st.markdown("""
     /* Plus Button Style */
     button[data-testid="baseButton-secondary"] {
         border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
+        width: 35px !important;
+        height: 35px !important;
         padding: 0px !important;
-        margin-bottom: 5px;
     }
-    
-    /* File Attachment Badge Style */
-    .file-badge {
-        background-color: #e0e0e0;
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        color: #333;
-        margin-bottom: 10px;
-        display: inline-block;
+
+    /* Adjust the New Chat button to be smaller/sleek */
+    div[data-testid="column"] button {
+        border-radius: 8px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -69,24 +62,24 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
-# 4. BOTTOM INPUT AREA (The ChatGPT Look)
-col1, col2 = st.columns([0.07, 0.93], vertical_alignment="bottom")
+# 4. BOTTOM INPUT AREA
+# col1: Plus button, col2: New Chat button, col3: Input bar
+col1, col2, col3 = st.columns([0.05, 0.12, 0.83], vertical_alignment="bottom")
 
 with col1:
-    # The Plus (+) Button Popover
     with st.popover("➕"):
         st.markdown("### Attachments")
         uploaded_file = st.file_uploader("Upload files", type=['pdf', 'txt'], label_visibility="collapsed")
-        
-        if st.button("🗑️ Clear Chat"):
-            st.session_state.messages = [{"role": "assistant", "content": "Chat cleared!"}]
-            st.rerun()
 
 with col2:
-    # SHOW ATTACHED FILE BADGE (This ensures you see the file before sending)
+    if st.button("🔄 New Chat"):
+        st.session_state.messages = [{"role": "assistant", "content": "Chat cleared! How can I help?"}]
+        st.rerun()
+
+with col3:
+    # Show the badge right above the input box if a file is uploaded
     if uploaded_file:
         st.markdown(f"📎 **Attached:** `{uploaded_file.name}`")
-        
     prompt = st.chat_input("Ask Nexus...")
 
 # 5. PROCESSING LOGIC
@@ -100,12 +93,11 @@ if prompt:
         with st.spinner("Nexus is reading and thinking..."):
             file_context = ""
             
-            # If a file is uploaded, extract its content and add it to the prompt context
+            # If a file is uploaded, extract its content
             if uploaded_file:
                 content = extract_text_from_file(uploaded_file)
                 file_context = f"\n[DOCUMENT CONTENT FOR REFERENCE: {content}]\n"
             
-            # Build the final content string
             final_content = f"{file_context} User Question: {prompt}"
 
             completion = client.chat.completions.create(
