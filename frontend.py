@@ -48,9 +48,10 @@ st.markdown("""
         padding: 0px !important;
     }
 
-    /* Adjust the New Chat button to be smaller/sleek */
-    div[data-testid="column"] button {
-        border-radius: 8px !important;
+    /* Column Alignment */
+    div[data-testid="column"] {
+        display: flex;
+        align-items: flex-end;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -63,40 +64,49 @@ for msg in st.session_state.messages:
         st.write(msg["content"])
 
 # 4. BOTTOM INPUT AREA
-# col1: Plus button, col2: New Chat button, col3: Input bar
 col1, col2, col3 = st.columns([0.05, 0.12, 0.83], vertical_alignment="bottom")
 
 with col1:
     with st.popover("➕"):
-        st.markdown("### Attachments")
-        uploaded_file = st.file_uploader("Upload files", type=['pdf', 'txt'], label_visibility="collapsed")
+        st.markdown("### Attach Content")
+        
+        # Option 1: Local Upload
+        uploaded_file = st.file_uploader("Upload local files", type=['pdf', 'txt'], label_visibility="visible")
+        
+        st.divider()
+        
+        # Option 2: Google Drive Placeholder
+        if st.button("📁 Add from Google Drive"):
+            st.info("Google Drive Integration: Cloud Project & OAuth setup required for live access.")
+            
+        # Option 3: Clear Chat
+        if st.button("🗑️ Reset Conversation"):
+            st.session_state.messages = [{"role": "assistant", "content": "Chat cleared!"}]
+            st.rerun()
 
 with col2:
     if st.button("🔄 New Chat"):
-        st.session_state.messages = [{"role": "assistant", "content": "Chat cleared! How can I help?"}]
+        st.session_state.messages = [{"role": "assistant", "content": "New session started."}]
         st.rerun()
 
 with col3:
-    # Show the badge right above the input box if a file is uploaded
+    # Badge to show what is currently "in memory"
     if uploaded_file:
         st.markdown(f"📎 **Attached:** `{uploaded_file.name}`")
     prompt = st.chat_input("Ask Nexus...")
 
 # 5. PROCESSING LOGIC
 if prompt:
-    # Add user message to history
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.write(prompt)
 
     try:
-        with st.spinner("Nexus is reading and thinking..."):
+        with st.spinner("Nexus is processing..."):
             file_context = ""
-            
-            # If a file is uploaded, extract its content
             if uploaded_file:
                 content = extract_text_from_file(uploaded_file)
-                file_context = f"\n[DOCUMENT CONTENT FOR REFERENCE: {content}]\n"
+                file_context = f"\n[REFERENCE DOCUMENT: {content}]\n"
             
             final_content = f"{file_context} User Question: {prompt}"
 
@@ -106,11 +116,9 @@ if prompt:
             )
             
             ans = completion.choices[0].message.content
-            
-            # Add assistant message to history
             st.session_state.messages.append({"role": "assistant", "content": ans})
             with st.chat_message("assistant"):
                 st.write(ans)
                 
     except Exception as e:
-        st.error(f"Nexus encountered an error: {e}")
+        st.error(f"Error: {e}")
